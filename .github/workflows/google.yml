@@ -94,9 +94,9 @@ jobs:
       # Step 11: Verify Deployment
       - name: Verify Deployment
         run: |
-          kubectl apply -f django-deployment.yaml
-          kubectl apply -f service.yaml
-          kubectl apply -f backend-config.yaml
+          kubectl apply -f ./template/django-deployment.yaml
+          kubectl apply -f ./template/service.yaml
+          kubectl apply -f ./template/backend-config.yaml
 
       # Optional: Notify on Deployment Success
       - name: Notify Deployment Success
