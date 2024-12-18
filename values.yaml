@@ -8,8 +8,8 @@ django:
   appName: better-backend-app-django
   host: api-v2.integration-betteropinions.com
   image:
-    repository: {{ .Values.django.image.repository }}
-    tag: {{ .Values.django.image.tag }}
+    repository: asia-south1-docker.pkg.dev/bo-stage/bo-main
+    tag: latest
   replicas: 2
   resources:
     limits:
