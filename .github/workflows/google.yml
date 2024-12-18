@@ -17,6 +17,7 @@ env:
   HELM_RELEASE_NAME: my-helm-release
   HELM_CHART_PATH: ./helm-chart  # Path to Helm chart directory
   CONFIG_MAP_NAME: better-backend-app-config
+  TEMPLATE_PATH: ./templates
 
 jobs:
   build-and-deploy:
@@ -88,13 +89,17 @@ jobs:
             --set django.appName=${{ env.DEPLOYMENT_NAME }} \
             --set configMap.name=${{ env.CONFIG_MAP_NAME }} \
             --namespace stage \
-            --create-namespace 
+            --create-namespace
+
+      # Step 11: Apply Template Configurations
+      - name: Apply Kubernetes Config Template (if needed)
+        run: |
+          kubectl apply -f ${TEMPLATE_PATH}/*.yaml
 
       # Step 12: Verify Deployment
       - name: Verify Deployment
         run: |
           kubectl get deployments --namespace stage
-      
       # kubectl apply -f backend-config.yaml
 
       # Optional: Notify on Deployment Success
