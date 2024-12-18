@@ -94,12 +94,9 @@ jobs:
       # Step 12: Verify Deployment
       - name: Verify Deployment
         run: |
-          echo "Current working directory: $(pwd)"
-          echo "Listing contents of ./template"
-          ls ./template
-          
           kubectl apply -f deployment.yaml
           kubectl apply -f service.yaml
+      
       # kubectl apply -f backend-config.yaml
 
       # Optional: Notify on Deployment Success
