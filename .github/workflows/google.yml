@@ -87,7 +87,7 @@ jobs:
             --set image.tag=${{ github.sha }} \
             --set django.appName=${{ env.DEPLOYMENT_NAME }} \
             --set configMap.name=${{ env.CONFIG_MAP_NAME }} \
-            --namespace supplychainvisibility \
+            --namespace stage \
             --create-namespace
 
       # Step 11: Verify Deployment
