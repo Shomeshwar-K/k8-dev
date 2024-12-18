@@ -5,7 +5,7 @@ metadata:
   labels:
     app: better-backend-app-django
 spec:
-  replicas: better-backend-app-django
+  replicas: 2
   selector:
     matchLabels:
       app: better-backend-app-django  # Change 'pod' to 'app' for consistency
