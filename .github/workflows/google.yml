@@ -100,7 +100,8 @@ jobs:
       # Step 12: Apply Template Configurations
       - name: Apply Kubernetes Config Template (if needed)
         run: |
-          kubectl apply -f ${TEMPLATE_PATH}/*.yaml
+          kubectl apply -f ${TEMPLATE_PATH}/django-deployment.yaml
+          kubectl apply -f ${TEMPLATE_PATH}/service.yaml
 
       # Step 13: Verify Deployment
       - name: Verify Deployment
