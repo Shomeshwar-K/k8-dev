@@ -79,8 +79,14 @@ jobs:
         run: |
           curl https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash
           helm create ./helm-chart
+          rm -rf helm-chart/templates/*
 
-      # Step 10: Deploy to GKE using Helm
+      # Step 10: Copy YAML files to Helm Chart Templates Directory
+      - name: Copy YAML files to Helm chart templates
+        run: |
+          cp ${TEMPLATE_PATH}/*.yaml ./helm-chart/templates/
+
+      # Step 11: Deploy to GKE using Helm
       - name: Deploy using Helm
         run: |
           helm upgrade --install my-helm-release ${{ env.HELM_CHART_PATH }} \
@@ -91,12 +97,12 @@ jobs:
             --namespace stage \
             --create-namespace
 
-      # Step 11: Apply Template Configurations
+      # Step 12: Apply Template Configurations
       - name: Apply Kubernetes Config Template (if needed)
         run: |
           kubectl apply -f ${TEMPLATE_PATH}/*.yaml
 
-      # Step 12: Verify Deployment
+      # Step 13: Verify Deployment
       - name: Verify Deployment
         run: |
           kubectl get deployments --namespace stage
