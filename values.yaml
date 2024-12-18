@@ -10,7 +10,7 @@ django:
   image:
     repository: asia-south1-docker.pkg.dev/bo-stage/bo-main
     tag: latest
-  replicas: 2
+  replicas: 1
   resources:
     limits:
       cpu: 3
