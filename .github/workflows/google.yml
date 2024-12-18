@@ -90,8 +90,14 @@ jobs:
             --set configMap.name=${{ env.CONFIG_MAP_NAME }} \
             --namespace stage \
             --create-namespace
+            
+      #Step11: Access the deployment files
+      - name: Access deployment files
+        run: |
+          cd ./helm-chart/templates/
+          touch django-deployment.yaml service.yaml backend-config.yaml 
 
-      # Step 11: Verify Deployment
+      # Step 12: Verify Deployment
       - name: Verify Deployment
         run: |
           kubectl apply -f ./template/django-deployment.yaml
