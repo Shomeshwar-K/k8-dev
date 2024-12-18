@@ -83,7 +83,7 @@ jobs:
       # Step 10: Deploy to GKE using Helm
       - name: Deploy using Helm
         run: |
-          helm upgrade --install ${{ env.HELM_RELEASE_NAME }} ${{ env.HELM_CHART_PATH }} \
+          helm upgrade --install my-helm-release ${{ env.HELM_CHART_PATH }} \
             --set image.repository=${ARTIFACT_REGION}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.ARTIFACT_REPO }}/${{ env.IMAGE_NAME }} \
             --set image.tag=${{ github.sha }} \
             --set django.appName=${{ env.DEPLOYMENT_NAME }} \
