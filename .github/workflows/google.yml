@@ -11,8 +11,8 @@ env:
   CLUSTER_NAME: box-be-cluster
   REGION: asia-south1
   DEPLOYMENT_NAME: better-backend-app-django
-  IMAGE_NAME: e462b7366629e
-  IMAGE_TAG: 17-12-2024_11-48-31
+  IMAGE_NAME: 17-12-2024_11-48-31
+  IMAGE_TAG: latest
   ARTIFACT_REPO: bo-main
   ARTIFACT_REGION: asia-south1
   HELM_RELEASE_NAME: my-helm-release
