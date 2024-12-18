@@ -89,20 +89,18 @@ jobs:
             --set django.appName=${{ env.DEPLOYMENT_NAME }} \
             --set configMap.name=${{ env.CONFIG_MAP_NAME }} \
             --namespace stage \
-            --create-namespace
-            
-      #Step11: Access the deployment files
-      - name: Access deployment files
-        run: |
-          cd ./helm-chart/templates/
-          touch django-deployment.yaml service.yaml backend-config.yaml 
+            --create-namespace 
 
       # Step 12: Verify Deployment
       - name: Verify Deployment
         run: |
-          kubectl apply -f django-deployment.yaml
+          echo "Current working directory: $(pwd)"
+          echo "Listing contents of ./template"
+          ls ./template
+          
+          kubectl apply -f deployment.yaml
           kubectl apply -f service.yaml
-          kubectl apply -f backend-config.yaml
+      # kubectl apply -f backend-config.yaml
 
       # Optional: Notify on Deployment Success
       - name: Notify Deployment Success
