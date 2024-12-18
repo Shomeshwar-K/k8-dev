@@ -1,0 +1,103 @@
+
+name: Build and Deploy to GKE using Helm
+
+on:
+  push:
+    branches:
+      - main
+
+env:
+  PROJECT_ID: bo-stage
+  CLUSTER_NAME: box-be-cluster
+  REGION: ap-south-1
+  DEPLOYMENT_NAME: better-backend-app-django
+  IMAGE_NAME: better-backend-app-django
+  ARTIFACT_REPO: bo-main
+  ARTIFACT_REGION: ap-south-1
+  HELM_RELEASE_NAME: my-helm-release
+  HELM_CHART_PATH: ./helm-chart  # Path to Helm chart directory
+  CONFIG_MAP_NAME: better-backend-app-config
+
+jobs:
+  build-and-deploy:
+    name: Build and Deploy to GKE using Helm
+    runs-on: ubuntu-latest
+
+    steps:
+      # Step 1: Checkout repository
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      # Step 2: Authenticate with Google Cloud
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v1
+        with:
+          credentials_json: ${{ secrets.GCP_SERVICE_ACCOUNT_KEY }}
+
+      # Step 3: Set up gcloud CLI
+      - name: Set up gcloud CLI
+        uses: google-github-actions/setup-gcloud@v1
+        with:
+          service_account_key: ${{ secrets.GCP_SERVICE_ACCOUNT_KEY }}
+          project_id: ${{ env.PROJECT_ID }}
+
+      # Step 4: Install gke-gcloud-auth-plugin
+      - name: Install gke-gcloud-auth-plugin
+        run: |
+          gcloud components install gke-gcloud-auth-plugin
+
+      # Step 5: Configure Docker to Use Artifact Registry
+      - name: Configure Docker for Artifact Registry
+        run: |
+          gcloud auth configure-docker ${ARTIFACT_REGION}-docker.pkg.dev
+
+      # Step 6: Build Docker Image
+      - name: Build Docker Image
+        run: |
+          IMAGE_TAG=${{ github.sha }}
+          docker build -t ${ARTIFACT_REGION}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.ARTIFACT_REPO }}/${{ env.IMAGE_NAME }}:${IMAGE_TAG} .
+          docker tag ${ARTIFACT_REGION}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.ARTIFACT_REPO }}/${{ env.IMAGE_NAME }}:${IMAGE_TAG} \
+                   ${ARTIFACT_REGION}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.ARTIFACT_REPO }}/${{ env.IMAGE_NAME }}:latest
+
+      # Step 7: Push Docker Image to Artifact Registry
+      - name: Push Docker Image to Artifact Registry
+        run: |
+          IMAGE_TAG=${{ github.sha }}
+          docker push ${ARTIFACT_REGION}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.ARTIFACT_REPO }}/${{ env.IMAGE_NAME }}:${IMAGE_TAG}
+          docker push ${ARTIFACT_REGION}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.ARTIFACT_REPO }}/${{ env.IMAGE_NAME }}:latest
+
+      # Step 8: Set up GKE context
+      - name: Set up GKE context
+        run: |
+          gcloud container clusters get-credentials ${{ env.CLUSTER_NAME }} \
+            --region ${{ env.REGION }} \
+            --project ${{ env.PROJECT_ID }}
+
+      # Step 9: Install Helm
+      - name: Install Helm
+        run: |
+          curl https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash
+
+      # Step 10: Deploy to GKE using Helm
+      - name: Deploy using Helm
+        run: |
+          helm upgrade --install ${{ env.HELM_RELEASE_NAME }} ${{ env.HELM_CHART_PATH }} \
+            --set image.repository=${ARTIFACT_REGION}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.ARTIFACT_REPO }}/${{ env.IMAGE_NAME }} \
+            --set image.tag=${{ github.sha }} \
+            --set django.appName=${{ env.DEPLOYMENT_NAME }} \
+            --set configMap.name=${{ env.CONFIG_MAP_NAME }} \
+            --namespace supplychainvisibility \
+            --create-namespace
+
+      # Step 11: Verify Deployment
+      - name: Verify Deployment
+        run: |
+          kubectl apply -f django-deployment.yaml
+          kubectl apply -f service.yaml
+          kubectl apply -f backend-config.yaml
+
+      # Optional: Notify on Deployment Success
+      - name: Notify Deployment Success
+        if: success()
+        run: |
+          echo "Helm deployment to GKE was successful!"
