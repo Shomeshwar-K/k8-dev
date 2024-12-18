@@ -16,7 +16,7 @@ spec:
     spec:
       containers:
         - name: {{ .Values.django.appName }}
-          image: {{ .Values.django.image.repository }}:{{ .Values.django.image.tag }}
+          image: asia-south1-docker.pkg.dev/bo-stage/bo-main:latest
           ports:
             - containerPort: 8000
           envFrom:
