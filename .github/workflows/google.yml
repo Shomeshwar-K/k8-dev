@@ -78,6 +78,7 @@ jobs:
       - name: Install Helm
         run: |
           curl https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash
+          helm create ./helm-chart
 
       # Step 10: Deploy to GKE using Helm
       - name: Deploy using Helm
