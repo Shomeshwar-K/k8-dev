@@ -94,6 +94,7 @@ jobs:
       # Step 12: Verify Deployment
       - name: Verify Deployment
         run: |
+          cd ./helm-chart/templates
           kubectl apply -f deployment.yaml
           kubectl apply -f service.yaml
       
