@@ -1,34 +1,34 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ .Values.django.appName }}
+  name: better-backend-app-django
   labels:
-    app: {{ .Values.django.appName }}
+    app: better-backend-app-django
 spec:
-  replicas: {{ .Values.django.replicas }}
+  replicas: better-backend-app-django
   selector:
     matchLabels:
-      app: {{ .Values.django.appName }}  # Change 'pod' to 'app' for consistency
+      app: better-backend-app-django  # Change 'pod' to 'app' for consistency
   template:
     metadata:
       labels:
-        app: {{ .Values.django.appName }}  # Change 'pod' to 'app' for consistency
+        app: better-backend-app-django # Change 'pod' to 'app' for consistency
     spec:
       containers:
-        - name: {{ .Values.django.appName }}
+        - name: better-backend-app-django
           image: asia-south1-docker.pkg.dev/bo-stage/bo-main:latest
           ports:
             - containerPort: 8000
           envFrom:
             - configMapRef:
-                name: {{ .Values.configMap.name }}
+                name: better-backend-app-config
           resources:
             requests:
-              memory: {{ .Values.django.resources.requests.memory }}
-              cpu: {{ .Values.django.resources.requests.cpu }}
+              memory: 4Gi
+              cpu: 2
             limits:
-              memory: {{ .Values.django.resources.limits.memory }}
-              cpu: {{ .Values.django.resources.limits.cpu }}
+              memory: 6Gi
+              cpu: 3
           livenessProbe:
             httpGet:
                 path: /health/
