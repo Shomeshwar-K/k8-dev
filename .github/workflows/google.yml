@@ -9,11 +9,11 @@ on:
 env:
   PROJECT_ID: bo-stage
   CLUSTER_NAME: box-be-cluster
-  REGION: ap-south-1
+  REGION: asia-south1
   DEPLOYMENT_NAME: better-backend-app-django
   IMAGE_NAME: better-backend-app-django
   ARTIFACT_REPO: bo-main
-  ARTIFACT_REGION: ap-south-1
+  ARTIFACT_REGION: asia-south1
   HELM_RELEASE_NAME: my-helm-release
   HELM_CHART_PATH: ./helm-chart  # Path to Helm chart directory
   CONFIG_MAP_NAME: better-backend-app-config
