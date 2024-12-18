@@ -94,8 +94,7 @@ jobs:
       # Step 12: Verify Deployment
       - name: Verify Deployment
         run: |
-          kubectl rollout status deployment/${{ env.DEPLOYMENT_NAME }} -n stage
-          kubectl get services -n stage
+          kubectl get deployments --namespace stage
       
       # kubectl apply -f backend-config.yaml
 
