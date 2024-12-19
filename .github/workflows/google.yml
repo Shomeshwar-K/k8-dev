@@ -89,14 +89,9 @@ jobs:
       # Step 11: Deploy to GKE using Helm
       - name: Deploy using Helm
         run: |
-          helm upgrade --install my-helm-release ${{ env.HELM_CHART_PATH }} \
-            --set image.repository=${ARTIFACT_REGION}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.ARTIFACT_REPO }}/${{ env.IMAGE_NAME }} \
-            --set image.tag=${{ github.sha }} \
-            --set django.appName=${{ env.DEPLOYMENT_NAME }} \
-            --set configMap.name=${{ env.CONFIG_MAP_NAME }} \
-            --namespace stage \
-            --create-namespace
-
+           helm upgrade --install my-helm-release ${{ env.HELM_CHART_PATH }} \
+           --namespace stage --create-namespace
+      
       # Step 12: Apply Template Configurations
       - name: Apply Kubernetes Config Template (if needed)
         run: |
