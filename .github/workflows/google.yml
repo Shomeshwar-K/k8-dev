@@ -52,21 +52,6 @@ jobs:
         run: |
           gcloud auth configure-docker ${ARTIFACT_REGION}-docker.pkg.dev
 
-      # Step 6: Build Docker Image
-      - name: Build Docker Image
-        run: |
-          IMAGE_TAG=${{ github.sha }}
-          docker build -t ${ARTIFACT_REGION}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.ARTIFACT_REPO }}/${{ env.IMAGE_NAME }}:${IMAGE_TAG} .
-          docker tag ${ARTIFACT_REGION}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.ARTIFACT_REPO }}/${{ env.IMAGE_NAME }}:${IMAGE_TAG} \
-                   ${ARTIFACT_REGION}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.ARTIFACT_REPO }}/${{ env.IMAGE_NAME }}:latest
-
-      # Step 7: Push Docker Image to Artifact Registry
-      - name: Push Docker Image to Artifact Registry
-        run: |
-          IMAGE_TAG=${{ github.sha }}
-          docker pull ${ARTIFACT_REGION}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.ARTIFACT_REPO }}/${{ env.IMAGE_NAME }}:${IMAGE_TAG}
-          docker pull ${ARTIFACT_REGION}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.ARTIFACT_REPO }}/${{ env.IMAGE_NAME }}:latest
-
       # Step 8: Set up GKE context
       - name: Set up GKE context
         run: |
