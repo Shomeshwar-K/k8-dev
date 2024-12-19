@@ -7,78 +7,44 @@ on:
 
 env:
   PROJECT_ID: bo-stage
-  CLUSTER_NAME: box-be-cluster
+  CLUSTER_NAME: better-staging
   REGION: asia-south1
   HELM_RELEASE_NAME: my-helm-release
   HELM_CHART_PATH: ./helm-chart  # Path where the Helm chart will be created
 
 jobs:
-  build-and-deploy:
-    name: Build and Deploy to GKE using Helm
+  deploy:
+    name: Deploy
     runs-on: ubuntu-latest
-
+    
     steps:
-      # Step 1: Checkout repository
-      - name: Checkout Code
-        uses: actions/checkout@v4
+    - name: Checkout
+      uses: actions/checkout@v2
 
-      # Step 2: Authenticate with Google Cloud
-      - name: Authenticate to Google Cloud
-        uses: google-github-actions/auth@v1
-        with:
-          credentials_json: ${{ secrets.GCP_SERVICE_ACCOUNT_KEY }}
+    - name: Setup Google Cloud CLI
+      uses: google-github-actions/setup-gcloud@v0.2.1
+      with:
+        service_account_key: ${{ secrets.GCP_SA_KEY }}
+        project_id: ${{ secrets.GCP_PROJECT_ID }}
 
-      # Step 3: Set up gcloud CLI
-      - name: Set up gcloud CLI
-        uses: google-github-actions/setup-gcloud@v1
-        with:
-          service_account_key: ${{ secrets.GCP_SERVICE_ACCOUNT_KEY }}
-          project_id: ${{ env.PROJECT_ID }}
+    - name: Get GKE credentials
+      run: |-
+        gcloud container clusters get-credentials "$GKE_CLUSTER" --zone "$GKE_ZONE"
 
-      # Step 4: Install gke-gcloud-auth-plugin
-      - name: Install gke-gcloud-auth-plugin
-        run: |
-          gcloud components install gke-gcloud-auth-plugin
+    - name: Install Helm
+      run: |
+        curl https://raw.githubusercontent.com/helm/helm/master/scripts/get-helm-3 | bash
 
-      # Step 5: Set up GKE context
-      - name: Set up GKE context
-        run: |
-          gcloud container clusters get-credentials ${{ env.CLUSTER_NAME }} \
-            --region ${{ env.REGION }} \
-            --project ${{ env.PROJECT_ID }}
+    - name: Add Bitnami Helm repo
+      run: |
+        helm repo add bitnami https://charts.bitnami.com/bitnami
+        helm repo update
 
-      # Step 6: Install Helm
-      - name: Install Helm
-        run: |
-          curl https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash
-          helm version
+    - name: Deploy RabbitMQ
+      run: |
+        helm upgrade --install rabbitmq-test bitnami/rabbitmq -f values.yml
 
-      # Step 7: Create Helm chart (if needed)
-      - name: Create Helm chart
-        run: |
-          helm create ./helm-chart  # Create a new Helm chart in ./helm-chart directory
-          rm -rf ./helm-chart/templates/*  # Optionally clean up the default templates
-          # You can copy your custom templates or configuration here if needed
-
-      # Step 8: Verify Helm chart directory
-      - name: Verify Helm chart directory
-        run: |
-          ls -la ./helm-chart  # This will list files in ./helm-chart to verify it's there
-
-      # Step 9: Deploy using Helm
-      - name: Deploy using Helm
-        run: |
-          helm upgrade --install ${{ env.HELM_RELEASE_NAME }} ${{ env.HELM_CHART_PATH }} \
-           --namespace stage \
-           --create-namespace
-
-      # Step 10: Verify Helm Release
-      - name: Verify Helm Release
-        run: |
-          helm list --namespace stage
-
-      # Optional: Notify on Deployment Success
-      - name: Notify Deployment Success
-        if: success()
-        run: |
-          echo "Helm installation and deployment to GKE was successful!"
+    - name: Verify deployment
+      run: |
+        kubectl get pods -l app.kubernetes.io/name=rabbitmq
+        kubectl logs $(kubectl get pods -l app.kubernetes.io/name=rabbitmq -o jsonpath="{.items[0].metadata.name}")
