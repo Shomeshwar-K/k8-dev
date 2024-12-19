@@ -10,7 +10,7 @@ env:
   CLUSTER_NAME: box-be-cluster
   REGION: asia-south1
   HELM_RELEASE_NAME: my-helm-release
-  HELM_CHART_PATH: ./helm-chart  # Path to Helm chart directory
+  HELM_CHART_PATH: ./helm-chart  # Path where the Helm chart will be created
 
 jobs:
   build-and-deploy:
@@ -53,18 +53,30 @@ jobs:
           curl https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash
           helm version
 
-      # Step 7: Deploy using Helm
+      # Step 7: Create Helm chart (if needed)
+      - name: Create Helm chart
+        run: |
+          helm create ./helm-chart  # Create a new Helm chart in ./helm-chart directory
+          rm -rf ./helm-chart/templates/*  # Optionally clean up the default templates
+          # You can copy your custom templates or configuration here if needed
+
+      # Step 8: Verify Helm chart directory
+      - name: Verify Helm chart directory
+        run: |
+          ls -la ./helm-chart  # This will list files in ./helm-chart to verify it's there
+
+      # Step 9: Deploy using Helm
       - name: Deploy using Helm
         run: |
           helm upgrade --install ${{ env.HELM_RELEASE_NAME }} ${{ env.HELM_CHART_PATH }} \
            --namespace stage \
            --create-namespace
 
-      # Step 8: Verify Helm Release
+      # Step 10: Verify Helm Release
       - name: Verify Helm Release
         run: |
           helm list --namespace stage
-          
+
       # Optional: Notify on Deployment Success
       - name: Notify Deployment Success
         if: success()
