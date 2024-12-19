@@ -54,6 +54,15 @@ jobs:
             --region ${{ env.REGION }} \
             --project ${{ env.PROJECT_ID }}
 
+     # Step 6: Create and run test pod
+      - name: Run Test Pod on GKE
+        run: |
+          kubectl run test-pod \
+            --image=nginx:latest \
+            --restart=Never \
+            --namespace=default \
+            --timeout=60s
+
       # Optional: Notify on Deployment Success
       - name: Notify Deployment Success
         if: success()
