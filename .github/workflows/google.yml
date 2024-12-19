@@ -47,52 +47,19 @@ jobs:
         run: |
           gcloud components install gke-gcloud-auth-plugin
 
-      # Step 5: Configure Docker to Use Artifact Registry
-      - name: Configure Docker for Artifact Registry
-        run: |
-          gcloud auth configure-docker ${ARTIFACT_REGION}-docker.pkg.dev
-
-      # Step 8: Set up GKE context
+      # Step 5: Set up GKE context
       - name: Set up GKE context
         run: |
           gcloud container clusters get-credentials ${{ env.CLUSTER_NAME }} \
             --region ${{ env.REGION }} \
             --project ${{ env.PROJECT_ID }}
 
-      # Step 9: Install Helm
-      - name: Install Helm
+      # Step 6: Install RabbitMQ using Helm
+      - name: Install RabbitMQ
         run: |
-          curl https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash
-          helm create ./helm-chart
-          rm -rf helm-chart/templates/*
-
-      # Step 10: Copy YAML files to Helm Chart Templates Directory
-      - name: Copy YAML files to Helm chart templates
-        run: |
-          cp ${TEMPLATE_PATH}/*.yaml ./helm-chart/templates/
-
-      # Step 11: Deploy to GKE using Helm
-      - name: Deploy using Helm
-        run: |
-          helm upgrade --install my-helm-release ${{ env.HELM_CHART_PATH }} \
-           --set image.repository=${ARTIFACT_REGION}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.ARTIFACT_REPO }}/${{ env.IMAGE_NAME }} \
-           --set image.tag=${{ github.sha }} \
-           --set django.appName=${{ env.DEPLOYMENT_NAME }} \
-           --set configMap.name=${{ env.CONFIG_MAP_NAME }} \
-           --namespace stage \
-           --create-namespace
-      
-      # Step 12: Apply Template Configurations
-      - name: Apply Kubernetes Config Template (if needed)
-        run: |
-          kubectl apply -f ${TEMPLATE_PATH}/django-deployment.yaml
-          kubectl apply -f ${TEMPLATE_PATH}/service.yaml
-
-      # Step 13: Verify Deployment
-      - name: Verify Deployment
-        run: |
-          kubectl get deployments --namespace stage
-      # kubectl apply -f backend-config.yaml
+          helm repo add bitnami https://charts.bitnami.com/bitnami
+          helm repo update
+          helm install rabbitmq bitnami/rabbitmq --namespace default
 
       # Optional: Notify on Deployment Success
       - name: Notify Deployment Success
