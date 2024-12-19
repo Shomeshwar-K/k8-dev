@@ -7,7 +7,7 @@ on:
 
 env:
   PROJECT_ID: bo-stage
-  CLUSTER_NAME: box-be-cluster
+  CLUSTER_NAME: better-staging
   REGION: asia-south1
   DEPLOYMENT_NAME: better-backend-app-django
   IMAGE_NAME: 17-12-2024_11-48-31
