@@ -1,4 +1,4 @@
-name: Build and Deploy Helm Chart to GKE
+name: Build and Deploy to GKE using Helm
 
 on:
   push:
@@ -9,42 +9,53 @@ env:
   PROJECT_ID: bo-stage
   CLUSTER_NAME: better-staging
   REGION: asia-south1
+  DEPLOYMENT_NAME: better-backend-app-django
+  IMAGE_NAME: 17-12-2024_11-48-31
+  IMAGE_TAG: latest
+  ARTIFACT_REPO: bo-main
+  ARTIFACT_REGION: asia-south1
   HELM_RELEASE_NAME: my-helm-release
-  HELM_CHART_PATH: ./helm-chart  # Path where the Helm chart will be created
+  HELM_CHART_PATH: ./helm-chart  # Path to Helm chart directory
+  CONFIG_MAP_NAME: better-backend-app-config
+  TEMPLATE_PATH: ./templates
 
 jobs:
-  deploy:
-    name: Deploy
+  build-and-deploy:
+    name: Build and Deploy to GKE using Helm
     runs-on: ubuntu-latest
-    
+
     steps:
-    - name: Checkout
-      uses: actions/checkout@v2
+      # Step 1: Checkout repository
+      - name: Checkout Code
+        uses: actions/checkout@v4
 
-    - name: Setup Google Cloud CLI
-      uses: google-github-actions/setup-gcloud@v0.2.1
-      with:
-        service_account_key: ${{ secrets.GCP_SA_KEY }}
-        project_id: ${{ secrets.GCP_PROJECT_ID }}
+      # Step 2: Authenticate with Google Cloud
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v1
+        with:
+          credentials_json: ${{ secrets.GCP_SERVICE_ACCOUNT_KEY }}
 
-    - name: Get GKE credentials
-      run: |-
-        gcloud container clusters get-credentials "$GKE_CLUSTER" --zone "$GKE_ZONE"
+      # Step 3: Set up gcloud CLI
+      - name: Set up gcloud CLI
+        uses: google-github-actions/setup-gcloud@v1
+        with:
+          service_account_key: ${{ secrets.GCP_SERVICE_ACCOUNT_KEY }}
+          project_id: ${{ env.PROJECT_ID }}
 
-    - name: Install Helm
-      run: |
-        curl https://raw.githubusercontent.com/helm/helm/master/scripts/get-helm-3 | bash
+      # Step 4: Install gke-gcloud-auth-plugin
+      - name: Install gke-gcloud-auth-plugin
+        run: |
+          gcloud components install gke-gcloud-auth-plugin
 
-    - name: Add Bitnami Helm repo
-      run: |
-        helm repo add bitnami https://charts.bitnami.com/bitnami
-        helm repo update
+      # Step 8: Set up GKE context
+      - name: Set up GKE context
+        run: |
+          gcloud container clusters get-credentials ${{ env.CLUSTER_NAME }} \
+            --region ${{ env.REGION }} \
+            --project ${{ env.PROJECT_ID }}
 
-    - name: Deploy RabbitMQ
-      run: |
-        helm upgrade --install rabbitmq-test bitnami/rabbitmq -f values.yml
-
-    - name: Verify deployment
-      run: |
-        kubectl get pods -l app.kubernetes.io/name=rabbitmq
-        kubectl logs $(kubectl get pods -l app.kubernetes.io/name=rabbitmq -o jsonpath="{.items[0].metadata.name}")
+      # Optional: Notify on Deployment Success
+      - name: Notify Deployment Success
+        if: success()
+        run: |
+          echo "Helm deployment to GKE was successful!"
